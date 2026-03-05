@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Partie 1 &ndash; Analyse fonctionnelle</title>
+            <style>
+/* From extension vscode.github */
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+.vscode-dark img[src$=\#gh-light-mode-only],
+.vscode-light img[src$=\#gh-dark-mode-only],
+.vscode-high-contrast:not(.vscode-high-contrast-light) img[src$=\#gh-light-mode-only],
+.vscode-high-contrast-light img[src$=\#gh-dark-mode-only] {
+	display: none;
+}
+
+</style>
+            
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/markdown.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/Microsoft/vscode/extensions/markdown-language-features/media/highlight.css">
+<style>
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe WPC', 'Segoe UI', system-ui, 'Ubuntu', 'Droid Sans', sans-serif;
+                font-size: 14px;
+                line-height: 1.6;
+            }
+        </style>
+        <style>
+.task-list-item {
+    list-style-type: none;
+}
+
+.task-list-item-checkbox {
+    margin-left: -20px;
+    vertical-align: middle;
+    pointer-events: none;
+}
+</style>
+<style>
+:root {
+  --color-note: #0969da;
+  --color-tip: #1a7f37;
+  --color-warning: #9a6700;
+  --color-severe: #bc4c00;
+  --color-caution: #d1242f;
+  --color-important: #8250df;
+}
+
+</style>
+<style>
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-note: #2f81f7;
+    --color-tip: #3fb950;
+    --color-warning: #d29922;
+    --color-severe: #db6d28;
+    --color-caution: #f85149;
+    --color-important: #a371f7;
+  }
+}
+
+</style>
+<style>
+.markdown-alert {
+  padding: 0.5rem 1rem;
+  margin-bottom: 16px;
+  color: inherit;
+  border-left: .25em solid #888;
+}
+
+.markdown-alert>:first-child {
+  margin-top: 0
+}
+
+.markdown-alert>:last-child {
+  margin-bottom: 0
+}
+
+.markdown-alert .markdown-alert-title {
+  display: flex;
+  font-weight: 500;
+  align-items: center;
+  line-height: 1
+}
+
+.markdown-alert .markdown-alert-title .octicon {
+  margin-right: 0.5rem;
+  display: inline-block;
+  overflow: visible !important;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+.markdown-alert.markdown-alert-note {
+  border-left-color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-note .markdown-alert-title {
+  color: var(--color-note);
+}
+
+.markdown-alert.markdown-alert-important {
+  border-left-color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-important .markdown-alert-title {
+  color: var(--color-important);
+}
+
+.markdown-alert.markdown-alert-warning {
+  border-left-color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-warning .markdown-alert-title {
+  color: var(--color-warning);
+}
+
+.markdown-alert.markdown-alert-tip {
+  border-left-color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-tip .markdown-alert-title {
+  color: var(--color-tip);
+}
+
+.markdown-alert.markdown-alert-caution {
+  border-left-color: var(--color-caution);
+}
+
+.markdown-alert.markdown-alert-caution .markdown-alert-title {
+  color: var(--color-caution);
+}
+
+</style>
+        
+        </head>
+        <body class="vscode-body vscode-light">
+            <h1 id="partie-1--analyse-fonctionnelle">Partie 1 – Analyse fonctionnelle</h1>
+<h2 id="application-de-calcul-automatisé-pour-la-broderie">Application de calcul automatisé pour la broderie</h2>
+<hr>
+<h2 id="1-approche-globale">1. Approche globale</h2>
+<h3 id="decoupage-du-processus-de-traitement-de-limage">Decoupage du processus de traitement de l'image</h3>
+<pre><code>[L'utilisateur fournis l'image]
+         │
+         ▼
+┌─────────────────────┐
+│  1. Import &amp; valida │  ← Vérification format, résolution, taille
+│     tion de l'image │
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  2. Prétraitement   │  ← Réduction du bruit, normalisation des couleurs
+│     de l'image      │     redimensionnement si nécessaire
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  3. Analyse des     │  ← Détection et regroupement des couleurs
+│     couleurs        │     
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  4. Segmentation    │  ← Identification des zones par couleur
+│     des zones       │     
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  5. Calcul des      │  ← Comptage des pixels → conversion en surface réelle
+│     surfaces        │     (application de l'unité choisie : mm2 ou cm2)
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  6. Estimation      │  ← Calcul du fil (surface × densité de points)
+│     fil &amp; coût      │     Estimation du temps et du coût par couleur
+└─────────────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│  7. Restitution     │  ← Rapport visuel : image annotée + tableau récapitulatif des coûts et des travaux
+│     à l'utilisateur │     
+└─────────────────────┘
+</code></pre>
+<h3 id="description-des-étapes">Description des étapes</h3>
+<p><strong>Étape 1 – Import &amp; validation</strong>
+L'utilisateur soumet une image (JPG, PNG, SVG…). Le système valide le format, la résolution minimale et le poids du fichier avant de procéder et stocker l'image pour le traiter. Mais si une condition n'est pas satisfaite, le système affiche un message d'erreur et demande à l'utilisateur de fournir une image valide.</p>
+<p>Exemple de code de verification :</p>
+<pre><code class="language-javascript"><span class="hljs-keyword">function</span> <span class="hljs-title function_">uploadImage</span>(<span class="hljs-params">file</span>) {
+  <span class="hljs-keyword">if</span> (!file) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;Aucune image fournie&quot;</span>);
+  <span class="hljs-keyword">if</span> (file.<span class="hljs-property">size</span> &gt; <span class="hljs-variable constant_">MAX_SIZE</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Error</span>(<span class="hljs-string">&quot;Image trop grande&quot;</span>);
+
+  <span class="hljs-keyword">const</span> imageId = <span class="hljs-title function_">saveFile</span>(file);
+  <span class="hljs-keyword">return</span> imageId;
+}
+</code></pre>
+<p><strong>Étape 2 – Prétraitement</strong>
+Avant l'analyse, on normalise l'image : réduction du bruit (flou léger), normalisation des valeurs de couleur et redimensionnement si l'image est trop grande pour le traitement. Le but est de simplifier l'image.
+Outil possible : OpenCV ( open source ).</p>
+<p><strong>Étape 3 – Analyse des couleurs</strong>
+On identifie les couleurs dominantes de l'image. Deux approches possibles :</p>
+<ul>
+<li><strong>Quantisation de couleur</strong> : réduit le nombre de couleurs à N couleurs représentatives.</li>
+<li><strong>Clustering k-means</strong> sur l'espace RGB ou Lab pour regrouper les pixels par famille de couleur.
+Avant de regrouper, on convertit les couleurs RGB en espace CIE Lab, car deux couleurs très proches en RGB ne semblent pas toujours proches à l'oeil humain.
+Le but est que l'application utilise par exemple juste une dixaine de couleurs dominantes au lieu de 10.000 par exemple. Dans le but de reduire les couts et les depenses des deux cotes.</li>
+</ul>
+<p><strong>Étape 4 – Segmentation des zones</strong>
+Pour chaque couleur identifiée, on délimite les zones de pixels correspondantes. Chaque zone devient une surface à broder.</p>
+<p><strong>Étape 5 – Calcul des surfaces</strong>
+Il y a deux méthodes : une plus simple et une qui est plus avancée mais plus précise.</p>
+<ol>
+<li>Simple :</li>
+</ol>
+<blockquote>
+<p><code>surface = nombre_pixels * surface_pixels</code>
+Si on suppose que 1 pixel = 0,1mm² et qu'on a 5000 pixels rouges à broder.
+Exemple :
+5000 pixels * 0.1mm² = 500mm² de rouger à broder
+Cette méthode est simple mais approximative, car elle suppose que :
+- tous les pixels ont une taille connue
+- l'image a toujours la même échelle</p>
+</blockquote>
+<p>Elle peut fonctionner si :
+- toutes les images viennent d’une même machine
+- la taille de l’image est standard</p>
+<ol>
+<li>Avancée et recommandée :</li>
+</ol>
+<p>Le nombre de pixels par couleur est converti en surface réelle grâce au DPI (dots per inch) de l'image ou à une échelle fournie par l'utilisateur.
+Exemple :
+72 DPI = 72 pixels par pouce</p>
+<blockquote>
+<p>Formule : <code>surface_cm² = (nb_pixels / DPI²) × 6.4516</code><br>
+(1 pouce = 2.54 cm, donc 1 pouce² = 6.4516 cm²)</p>
+</blockquote>
+<p>Exemple :
+Si l'image est en 300 DPI et qu'on a par exemple 80000 pixels de jaune
+surface_cm² = (80000 / 300²) * 6.4516 = 5.73cm² de jaune à broder
+Et cela se répétera jusqu'à ce que toutes les surfaces des couleurs déterminées seront calculées.</p>
+<p><strong>Étape 6 – Estimation du fil et du coût</strong>
+À partir de la surface et de la densité de points (points/cm²), on calcule la longueur de fil nécessaire par couleur. Avec un prix au mètre, on obtient le coût estimé.</p>
+<ul>
+<li>
+<p>estimation de la longueur du fil :</p>
+<blockquote>
+<p><code>longueur_fil = surface * densite_points</code>
+Ici densité point est une paramètre à déterminer par l'utilisateur ou par la configuration.</p>
+</blockquote>
+</li>
+<li>
+<p>estimation du temps :</p>
+<blockquote>
+<p><code>temps = nombre_points / vitesse_machine</code></p>
+</blockquote>
+</li>
+<li>
+<p>estimation du coût :</p>
+<blockquote>
+<p><code>coût = longueur_fil × prix_fil</code></p>
+</blockquote>
+</li>
+</ul>
+<p><strong>Étape 7 – Restitution</strong>
+L'utilisateur reçoit un rapport clair : image annotée avec les zones colorées, la liste des couleurs, surface par couleurs, estimation du fil, temps de broderie. Interface possible dans un tableau ou un graphique que le client pourra exporter.</p>
+<hr>
+<h2 id="2-modèle-de-données">2. Modèle de données</h2>
+<h3 id="entités-principales-et-leurs-champs">Entités principales et leurs champs</h3>
+<hr>
+<h4 id="entité--user-utilisateur">Entité : <code>User</code> (Utilisateur)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>id unique de l'utilisateur</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>String</td>
+<td>Nom utilisateur</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>String</td>
+<td>Email utilisateur</td>
+</tr>
+<tr>
+<td><code>password</code></td>
+<td>String</td>
+<td>Mot de passe utilisateur</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>DateTime</td>
+<td>Date de création du compte</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h4 id="entité--commande-projet-de-broderie">Entité : <code>Commande</code> (Projet de broderie)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>id unique du projet</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>String</td>
+<td>Nom donné au projet par l'utilisateur</td>
+</tr>
+<tr>
+<td><code>user_id</code></td>
+<td>UUID (FK)</td>
+<td>Référence <a href="http://user.id">user.id</a></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>DateTime</td>
+<td>Date de création</td>
+</tr>
+<tr>
+<td><code>image_id</code></td>
+<td>UUID (FK)</td>
+<td>Référence vers l'<a href="http://image.id">image.id</a></td>
+</tr>
+<tr>
+<td><code>config_id</code></td>
+<td>UUID (FK)</td>
+<td>Référence vers la <a href="http://configuration.id">configuration.id</a></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Enum</td>
+<td><code>pending</code>, <code>processing</code>, <code>done</code>, <code>error</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li>Un projet est lié à exactement un utilisateur, une image et une configuration.</li>
+<li>Le statut <code>done</code> n'est atteint que si toutes les couleurs ont une surface calculée.</li>
+</ul>
+<hr>
+<h4 id="entité--image-image-importée">Entité : <code>Image</code> (Image importée)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>Identifiant unique</td>
+</tr>
+<tr>
+<td><code>filename</code></td>
+<td>String</td>
+<td>Nom du fichier original</td>
+</tr>
+<tr>
+<td><code>file_path</code></td>
+<td>String</td>
+<td>Chemin de stockage sur le serveur</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>Enum</td>
+<td><code>PNG</code>, <code>JPG</code>, <code>SVG</code>, <code>BMP</code></td>
+</tr>
+<tr>
+<td><code>width_px</code></td>
+<td>Integer</td>
+<td>Largeur en pixels</td>
+</tr>
+<tr>
+<td><code>height_px</code></td>
+<td>Integer</td>
+<td>Hauteur en pixels</td>
+</tr>
+<tr>
+<td><code>dpi</code></td>
+<td>Integer</td>
+<td>Résolution (dots per inch)</td>
+</tr>
+<tr>
+<td><code>uploaded_at</code></td>
+<td>DateTime</td>
+<td>Horodatage d'importation</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li>Le format doit être parmi les formats supportés (PNG, JPG recommandés).</li>
+<li><code>width_px</code> et <code>height_px</code> doivent être &gt; 0.</li>
+</ul>
+<hr>
+<h4 id="entité--detectedcolor-couleur-détectée">Entité : <code>DetectedColor</code> (Couleur détectée)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>Identifiant unique</td>
+</tr>
+<tr>
+<td><code>project_id</code></td>
+<td>UUID (FK)</td>
+<td>Projet parent</td>
+</tr>
+<tr>
+<td><code>rgb_value</code></td>
+<td>String</td>
+<td>Code couleur RGB ex. <code>(34, 139, 34)</code></td>
+</tr>
+<tr>
+<td><code>hex_code</code></td>
+<td>String</td>
+<td>Code hexadécimal ex. <code>#FFFFFF</code></td>
+</tr>
+<tr>
+<td><code>lab_value</code></td>
+<td>String</td>
+<td>Valeur CIE Lab</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>String</td>
+<td>Nom lisible ex. &quot;Vert forêt&quot; (optionnel)</td>
+</tr>
+<tr>
+<td><code>thread_ref</code></td>
+<td>String</td>
+<td>Référence fil correspondante</td>
+</tr>
+<tr>
+<td><code>pixel_count</code></td>
+<td>Integer</td>
+<td>Nombre de pixels de cette couleur</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li><code>pixel_count</code> doit être &gt; 0 (une couleur sans pixel n'existe pas).</li>
+<li>Deux couleurs très proches (distance ΔE &lt; seuil) peuvent être fusionnées.</li>
+<li>NB : Le matching se fait au moment du calcul : on compare le lab_value de DetectedColor avec tous les lab_value de ThreadReference et on prend celui avec le ΔE le plus faible.</li>
+</ul>
+<hr>
+<h4 id="entité--colorsurface-surface-associée-à-une-couleur">Entité : <code>ColorSurface</code> (Surface associée à une couleur)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>Identifiant unique</td>
+</tr>
+<tr>
+<td><code>color_id</code></td>
+<td>UUID (FK)</td>
+<td><a href="http://DetectedColor.id">DetectedColor.id</a></td>
+</tr>
+<tr>
+<td><code>project_id</code></td>
+<td>UUID (FK)</td>
+<td>Projet parent</td>
+</tr>
+<tr>
+<td><code>area_px</code></td>
+<td>Integer</td>
+<td>Surface en pixels</td>
+</tr>
+<tr>
+<td><code>area_cm2</code></td>
+<td>Float</td>
+<td>Surface convertie en cm²</td>
+</tr>
+<tr>
+<td><code>thread_length_m</code></td>
+<td>Float</td>
+<td>Longueur de fil estimée (mètres)</td>
+</tr>
+<tr>
+<td><code>estimated_cost</code></td>
+<td>Float</td>
+<td>Coût estimé (selon prix au mètre)</td>
+</tr>
+<tr>
+<td><code>zone_count</code></td>
+<td>Integer</td>
+<td>Nombre de zones distinctes pour cette couleur</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li><code>area_cm2</code> doit être &gt; 0.</li>
+<li><code>thread_length_m</code> = <code>area_cm2</code> × <code>densite_points</code> (de la config) × <code>longueur_fil_par_point</code>.<code>/100</code></li>
+<li><code>estimated_cost</code> ne peut être calculé que si le prix du fil est renseigné.</li>
+</ul>
+<hr>
+<h4 id="entité--configuration-configuration">Entité : <code>Configuration</code> (Configuration)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>Identifiant unique</td>
+</tr>
+<tr>
+<td><code>thread_type</code></td>
+<td>String</td>
+<td>Type de fil ex. &quot;coton&quot;, &quot;soie&quot;, &quot;polyester&quot;</td>
+</tr>
+<tr>
+<td><code>stitch_density</code></td>
+<td>Float</td>
+<td>Densité de points (points/cm²)</td>
+</tr>
+<tr>
+<td><code>thread_price_per_m</code></td>
+<td>Float</td>
+<td>Prix du fil par mètre</td>
+</tr>
+<tr>
+<td><code>thread_per_stitch</code></td>
+<td>Float</td>
+<td>Longueur de fil par point (cm)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li><code>stitch_density</code> doit être &gt; 0.</li>
+<li><code>thread_price_per_m</code> est optionnel ; si absent, le coût ne sera pas calculé.</li>
+</ul>
+<hr>
+<h4 id="entité--thread-configuration">Entité : <code>Thread</code> (Configuration)</h4>
+<table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td>Identifiant unique</td>
+</tr>
+<tr>
+<td><code>brand</code></td>
+<td>String</td>
+<td>Marque</td>
+</tr>
+<tr>
+<td><code>reference</code></td>
+<td>String</td>
+<td>ex : DMC 69</td>
+</tr>
+<tr>
+<td><code>color_hex</code></td>
+<td>String</td>
+<td>Couleur du fil en hex #RRGGBB</td>
+</tr>
+<tr>
+<td><code>color_lab</code></td>
+<td>String</td>
+<td>Valeur CIE Lab du fil (pour matching ΔE)</td>
+</tr>
+<tr>
+<td><code>color_name</code></td>
+<td>String</td>
+<td>Nom de la couleur</td>
+</tr>
+<tr>
+<td><code>thread_price_per_m</code></td>
+<td>Float</td>
+<td>Prix du fil par mètre</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Règles métier :</strong></p>
+<ul>
+<li><code>thread_price_per_m</code> doit être &gt; 0.</li>
+<li><code>thread_price_per_m</code> : si absent, le coût ne sera pas calculé.</li>
+</ul>
+<hr>
+<h3 id="schéma-des-relations">Schéma des relations</h3>
+<pre><code>User
+ │
+ └── 1:N ── Commande
+               │
+               ├── 1:1 ── Image
+               │
+               ├── 1:1 ── Configuration
+               │
+               └── 1:N ── DetectedColor
+                               │
+                               └── 1:1 ── ColorSurface
+                                              │
+                                              └── N:1 ── ThreadReference
+</code></pre>
+<blockquote>
+<p>Un utilisateur peut faire plusieurs commandes.
+Une image appartient à un projet.<br>
+Une commande peut avoir plusieurs couleurs détectées.<br>
+Chaque couleur détectée possède exactement une surface calculée.</p>
+</blockquote>
+<hr>
+<h2 id="3-obstacles-potentiels-et-risques">3. Obstacles potentiels et risques</h2>
+<h3 id="risque-1--qualité-ou-résolution-insuffisante-de-limage">Risque 1 – Qualité ou résolution insuffisante de l'image</h3>
+<p><strong>Problème :</strong> Une image floue, compressée (artefacts JPEG) ou de faible résolution fausse la détection des couleurs et la précision des surfaces.</p>
+<p><strong>Pistes de résolution :</strong></p>
+<ul>
+<li>Définir une résolution minimale requise (ex. 150 DPI minimum) et afficher une alerte si elle est inférieure.</li>
+<li>Informer clairement l'utilisateur que les résultats seront approximatifs si la qualité est faible.</li>
+</ul>
+<hr>
+<h3 id="risque-2--couleurs-très-proches-ou-dégradés">Risque 2 – Couleurs très proches ou dégradés</h3>
+<p><strong>Problème :</strong> Une image naturelle (comme des feuilles) contient des dizaines de nuances de vert très proches. L'algorithme peut créer trop de couleurs distinctes, rendant le résultat inexploitable.</p>
+<p><strong>Pistes de résolution :</strong></p>
+<ul>
+<li>Utiliser un <strong>espace colorimétrique perceptuel</strong> (CIE Lab) plutôt que RGB pour mieux regrouper les couleurs proches visuellement.</li>
+<li>Appliquer un <strong>clustering k-means</strong> avec un nombre k paramétrable par l'utilisateur (ex. &quot;Je veux 8 couleurs maximum&quot;).</li>
+<li>Proposer un <strong>seuil de fusion</strong> : deux couleurs dont la distance ΔE &lt; 10 sont automatiquement fusionnées.</li>
+</ul>
+<hr>
+<h3 id="risque-3--performances-sur-des-images-grandes">Risque 3 – Performances sur des images grandes</h3>
+<p><strong>Problème :</strong> Une image haute résolution (ex. 4000×3000 px) peut contenir 12 millions de pixels. L'analyse pixel par pixel peut être lente.</p>
+<p><strong>Pistes de résolution :</strong></p>
+<ul>
+<li><strong>Redimensionner</strong> l'image en entrée à une résolution de travail (ex. max 1500px de large) puis remonter le ratio pour la surface finale.</li>
+<li>Utiliser des bibliothèques optimisées comme <strong>NumPy / scikit-learn</strong> (Python) ou <strong>OpenCV</strong> qui opèrent sur des tableaux vectorisés, beaucoup plus rapides que des boucles pixel par pixel.</li>
+</ul>
+<hr>
+<h3 id="risque-4--précision-du-calcul-des-surfaces">Risque 4 – Précision du calcul des surfaces</h3>
+<p><strong>Problème :</strong> Si le DPI de l'image est inconnu ou incorrect, la conversion pixels → cm² sera fausse, entraînant de mauvaises estimations de fil.</p>
+<p><strong>Pistes de résolution :</strong></p>
+<ul>
+<li>Permettre à l'utilisateur de <strong>saisir manuellement les dimensions réelles</strong> du motif (ex. &quot;ce motif mesure 20cm × 15cm&quot;), ce qui permet de recalculer le DPI effectif.</li>
+<li>Lire les métadonnées EXIF de l'image pour extraire le DPI automatiquement.</li>
+<li>Afficher une <strong>marge d'erreur estimée</strong> dans les résultats (ex. ±5%) pour que l'utilisateur soit conscient de l'approximation.</li>
+</ul>
+<hr>
+<h3 id="risque-5--correspondance-couleur--fil-de-broderie">Risque 5 – Correspondance couleur ↔ fil de broderie</h3>
+<p><strong>Problème :</strong> La couleur détectée en RGB dans l'image peut ne pas correspondre exactement à une référence de fil commerciale (ex. DMC, Anchor).</p>
+<p><strong>Pistes de résolution :</strong></p>
+<ul>
+<li>Maintenir une <strong>base de données de correspondances</strong> couleur RGB ↔ référence fil (ex. table DMC avec 500+ couleurs).</li>
+<li>Utiliser la <strong>distance colorimétrique ΔE</strong> pour trouver la référence la plus proche.</li>
+<li>Laisser l'utilisateur <strong>valider ou modifier</strong> manuellement la correspondance proposée avant de lancer le calcul final.</li>
+</ul>
+<hr>
+
+            
+            
+        </body>
+        </html>
