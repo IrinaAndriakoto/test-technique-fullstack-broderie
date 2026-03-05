@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Document</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Tâches bloquées</h1>
+    <p>Vue d'ensemble des tâches en attente de déblocage</p>
+  </header>
+
+  <div class="filters">
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Rechercher..."
+    />
+    <select id="projectSelect">
+      <option value="">Tous les projets</option>
+    </select>
+  </div>
+
+  <p class="count">
+    <span id="countVisible">0</span> tâche(s) affichée(s)
+  </p>
+
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Nom de la tâche</th>
+          <th>Projet</th>
+          <th>Priorité</th>
+          <th>Raison du blocage</th>
+        </tr>
+      </thead>
+      <tbody id="taskTableBody">
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    const tasks = [
+      {
+        name: "Configurer le serveur",
+        project: "Implémentation Client A",
+        priority: 1,
+        block_reason: "En attente des accès"
+      },
+      {
+        name: "Rediger la documentation",
+        project: "Projet interne",
+        priority: 3,
+        block_reason: "Manque d'informations"
+      },
+      {
+        name: "Mettre à jour le schéma de données",
+        project: "Implémentation Client B",
+        priority: 2,
+        block_reason: "Décision métier en attente"
+      }
+    ];
+
+    const priorityLabels = {
+      1: "Haute",
+      2: "Moyenne",
+      3: "Basse"
+    };
+
+    function getProjectFiltered() {
+      const select = document.getElementById("projectSelect");
+
+      // Extraire les projets sans doublon
+      const projects = [...new Set(tasks.map(t => t.project))];
+
+      projects.forEach(project => {
+        const option = document.createElement("option");
+        option.value = project;
+        option.textContent = project;
+        select.appendChild(option);
+      });
+    }
+
+    function renderTasks(filteredTasks) {
+      const tbody = document.getElementById("taskTableBody");
+      const countElement = document.getElementById("countVisible");
+
+      tbody.innerHTML = "";
+
+      countElement.textContent = filteredTasks.length;
+
+      // Cas : aucune tâche à afficher
+      if (filteredTasks.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" class="empty">
+              Aucune tâche ne correspond aux filtres.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      // Créer une ligne par tâche
+      filteredTasks.forEach(task => {
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+          <td>${task.name}</td>
+          <td>${task.project}</td>
+          <td>${priorityLabels[task.priority]}</td>
+          <td class="reason">${task.block_reason}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function applyFilters() {
+      const search  = document.getElementById("searchInput").value.toLowerCase().trim();
+      const project = document.getElementById("projectSelect").value;
+
+      const filtered = tasks.filter(task => {
+        const matchSearch  = task.name.toLowerCase().includes(search);
+        const matchProject = project === "" || task.project === project;
+        return matchSearch && matchProject;
+      });
+
+      renderTasks(filtered);
+    }
+
+    document.getElementById("searchInput").addEventListener("input", applyFilters);
+    document.getElementById("projectSelect").addEventListener("change", applyFilters);
+
+    getProjectFiltered();
+    renderTasks(tasks);
+  </script>
+
+</body>
+</html>
