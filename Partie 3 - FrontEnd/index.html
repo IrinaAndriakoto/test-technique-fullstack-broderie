@@ -51,7 +51,7 @@
         block_reason: "En attente des accès"
       },
       {
-        name: "Rediger la documentation",
+        name: "Rédiger la documentation",
         project: "Projet interne",
         priority: 3,
         block_reason: "Manque d'informations"
@@ -119,15 +119,24 @@
       });
     }
 
+    function normalize(str) {
+      return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+
     function applyFilters() {
       const search  = document.getElementById("searchInput").value.toLowerCase().trim();
       const project = document.getElementById("projectSelect").value;
 
       const filtered = tasks.filter(task => {
-        const matchSearch  = task.name.toLowerCase().includes(search);
+        const matchSearch  = normalize(task.name).includes(search) || normalize(task.project).includes(search);
         const matchProject = project === "" || task.project === project;
         return matchSearch && matchProject;
       });
+
+      filtered.sort((a, b) => normalize(a.name).localeCompare(normalize(b.name)));
 
       renderTasks(filtered);
     }
